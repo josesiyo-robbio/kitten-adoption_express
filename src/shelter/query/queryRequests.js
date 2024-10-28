@@ -53,6 +53,16 @@ const QueryRequests =
     where 
         id = $1 AND adopted = false;
     `,
+
+    UPDATE_KITTEN:
+    `UPDATE
+        kittens
+    SET
+        adopted = true
+    WHERE  
+        id = $1
+    RETURNING 
+        name`
 }
 
 module.exports =  QueryRequests;

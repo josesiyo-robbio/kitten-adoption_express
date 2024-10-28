@@ -26,24 +26,85 @@ const AdoptionRequests =
 
 
 
-    update_approve_or_not : async(id,status) =>
+    update_approve_or_not: async (id, status, idKitty) =>
+    {
+        if (status === 'pending' || status === 'rejected')
+        {
+            try
+            {
+                const result = await moduleDB.oneOrNone({
+                    text: moduleRequests.UPDATE_APPROVE_OR_NOT,
+                    values: [id, status],
+                    rowMode: 'json'
+                });
+                console.log('Consulta SQL:', result);
+                return result;
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+        else if (status === 'approved')
+        {
+            try
+            {
+                const result = await moduleDB.tx(async t => {
+                    // Actualiza el estado de la solicitud
+                    await t.one(moduleRequests.UPDATE_APPROVE_OR_NOT, [id, status]);
+
+                    // Actualiza el estado del gatito como adoptado
+                    const kittenResult = await t.one(moduleRequests.UPDATE_KITTEN, [idKitty]);
+
+                    // Devuelve ambos resultados si es necesario
+                    return { adoptionRequest: 'Updated', kitten: kittenResult };
+                });
+                return result;
+            }
+            catch (error)
+            {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+    },
+
+
+    getKittyStatus: async (idKitty) =>
     {
         try
         {
             const result = await moduleDB.oneOrNone({
-                text : moduleRequests.UPDATE_APPROVE_OR_NOT,
-                values : [id,status],
-                rowMode : 'json'
+                text: 'SELECT adopted FROM kittens WHERE id = $1',
+                values: [idKitty],
+                rowMode: 'json'
             });
-            console.log('Consulta SQL:', result);
-            return result;
+            return result || { adopted: false };
         }
-        catch(error)
+        catch (error)
         {
             console.error('Error:', error);
             throw error;
         }
     },
+
+
+    rejectOtherRequests: async (idKitty, requestId) => {
+        try {
+            await moduleDB.none({
+                text: `
+                UPDATE adoption_requests 
+                SET status = 'rejected' 
+                WHERE kitten_id = $1 AND id != $2
+            `,
+                values: [idKitty, requestId]
+            });
+        } catch (error) {
+            console.error('Error rejecting other requests:', error);
+            throw error;
+        }
+    },
+
+
 
 
     select_one : async(id) =>
