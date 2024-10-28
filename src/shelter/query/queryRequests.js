@@ -11,6 +11,17 @@ const QueryRequests =
         adoption_requests
     WHERE 
         status = 'pending'`,
+
+
+
+    UPDATE_APPROVE_OR_NOT:
+    `
+    UPDATE 
+        adoption_requests 
+    SET
+        status = $2 WHERE id = $1
+    RETURNING status;
+    `,
 }
 
 module.exports =  QueryRequests;
