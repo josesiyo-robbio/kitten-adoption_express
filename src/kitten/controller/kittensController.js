@@ -89,7 +89,7 @@ const KittensController =
     },
 
 
-    
+
     adopted_kitty : async(req,res)=>
     {
         try
