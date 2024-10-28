@@ -12,6 +12,7 @@ const moduleCORS        =   require('cors');
 
 //KITTENS
 const routesKIttens            =   require('./src/kitten/routes/kittensRoutes');
+const routesRequets =   require('./src/shelter/routes/requestsRoutes');
 
 
 
@@ -42,6 +43,7 @@ app.use(moduleBODYPARSER.urlencoded({ extended: true }));
 
 //KITTENS
 app.use('/api',routesKIttens);
+app.use('/api',routesRequets);
 
 
 //-----------APIs SECTION------------------------------------------------------------------|
