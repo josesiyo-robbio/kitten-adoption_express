@@ -1,153 +1,155 @@
 
-const moduleREQUESTS = require('../model/adoptionRequests')
-const {validateRequiredFields} = require("../../kitten/middleware/validatorApi");
-const moduleKITTENS = require("../../kitten/model/kittens");
+
+
+const moduleREQUESTS            = require('../model/adoptionRequests')
+const {validateRequiredFields}  = require("../../kitten/middleware/validatorApi");
+
+
 
 const RequestsController =
 {
-    get_all_requests: async (req, res) =>
+    get_all_requests: async (req, res) => 
     {
-        try
+        try 
         {
-            const requests = await  moduleREQUESTS.all_requests()
-            if(requests.length > 0)
-            {
-                res.status(200).json(requests);
-            }
-            else
-            {
-                res.status(404).json({ message: 'No request found' });
-            }
-        }
-        catch (error)
+            const requests = await moduleREQUESTS.all_requests();
+            res.status(200).json(requests);
+        } 
+        catch (error) 
         {
-            console.log(error);
-            res.status(500).json({ message: 'Error', error: { message: error.message } });
+            console.error('Error fetching requests:', error);
+            res.status(500).json({ message: 'An error occurred while fetching requests', error: { message: error.message } });
         }
     },
 
 
 
-    approve_or_not: async(req, res) => {
-        try {
-            let requiredFields;
-            const { id, status, idKitty } = req.body;
-            requiredFields = ['id', 'status'];
+    approve_or_not: async (req, res) => 
+    {
+        const requiredFields = ['id', 'status'];
+        const validation = validateRequiredFields(req.body, requiredFields);
+    
+        if (!validation.success) 
+        {
+            return res.status(400).json({
+                message: validation.message,
+                missingFields: validation.missingFields
+            });
+        }
 
-            const validation = validateRequiredFields(req.body, requiredFields);
+        const { id, status, idKitty } = req.body;
 
-            if (!validation.success) {
-                res.status(400).json({ message: validation.message, missingFields: validation.missingFields });
-                return;
+        try 
+        {
+            if (!['rejected', 'pending', 'approved'].includes(status)) 
+            {
+                return res.status(400).json({ message: 'Invalid status. Must be "rejected", "pending", or "approved".' });
             }
-
-            if (status !== 'rejected' && status !== 'pending' && status !== 'approved') {
-                res.status(400).json('invalid request answer');
-                return;
-            }
-
-            if (status === 'approved') {
-                // Verifica el estado del gatito antes de aprobar la adopción
-                const kittyStatus = await moduleREQUESTS.getKittyStatus(idKitty); // Implementa esta función en tu modelo
-
-                if (kittyStatus.adopted) {
+    
+            if (status === 'approved') 
+            {
+                // Verify the status of the kitty before approving the adoption
+                const kittyStatus = await moduleREQUESTS.getKittyStatus(idKitty); 
+    
+                if (kittyStatus.adopted) 
+                {
                     return res.status(400).json({ message: 'Kitty has already been adopted.' });
                 }
-
-                // Marca todas las otras solicitudes para el mismo gato como "rejected"
-                await moduleREQUESTS.rejectOtherRequests(idKitty, id); // Implementa esta función en tu modelo
-
+    
+                // Mark other requests for the same kitty as "rejected"
+                await moduleREQUESTS.rejectOtherRequests(idKitty, id); 
+    
                 const adopted = await moduleREQUESTS.update_approve_or_not(id, status, idKitty);
-                if (adopted) {
-                    return res.status(200).json(adopted);
+                if (adopted) 
+                {
+                    return res.status(200).json({ message: 'Request approved successfully', request: adopted });
                 }
-            } else {
+            } 
+            else 
+            {
                 const answer = await moduleREQUESTS.update_approve_or_not(id, status, idKitty);
-                if (!answer) {
-                    res.status(404).json('request not found');
+                if (!answer) 
+                {
+                    return res.status(404).json({ message: 'Request not found' });
                 }
-                return res.status(200).json(answer);
+                return res.status(200).json({ message: 'Request status updated successfully', request: answer });
             }
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({ message: 'Error', error: { message: error.message } });
+        } 
+        catch (error) 
+        {
+            console.error('Error approving/rejecting request:', error);
+            return res.status(500).json({ message: 'An error occurred while processing the request', error: { message: error.message } });
         }
     },
-
 
 
 
     info : async(req,res) =>
     {
+        const requiredFields = ['id'];
+        const validation = validateRequiredFields(req.body, requiredFields);
+
+        if (!validation.success)
+        {
+            res.status(400).json({message: validation.message, missingFields: validation.missingFields});
+            return;
+        }
+
+        const {id} = req.body;
+
         try
         {
-            let requiredFields;
-            const {id} = req.body;
-            requiredFields = ['id'];
-            const validation = validateRequiredFields(req.body, requiredFields);
-
-            if (!validation.success)
-            {
-                res.status(400).json({message: validation.message, missingFields: validation.missingFields});
-                return;
-            }
-
             const info = await moduleREQUESTS.select_one(id);
-            if(!info)
+            if (!info) 
             {
-                res.status(404).json('request not found');
+                return res.status(404).json({ message: 'Request not found' });
             }
             return res.status(200).json(info);
-
         }
-        catch (error)
+        catch (error) 
         {
-            console.log(error);
-            res.status(500).json({ message: 'Error', error: { message: error.message } });
+            console.error('Error fetching request info:', error);
+            return res.status(500).json({ message: 'An error occurred while fetching request info', error: { message: error.message } });
         }
     },
 
 
-    add_new_one : async(req,res) =>
+
+    add_new_one: async (req, res) => 
     {
-        try
+        const requiredFields = ['kitten_id', 'applicant_name', 'phone', 'email', 'message', 'social_media_url'];
+        const validation = validateRequiredFields(req.body, requiredFields);
+        if (!validation.success) 
         {
-            let requiredFields;
-            const {kitten_id, applicant_name, phone, email, message, social_media_url} = req.body;
-            requiredFields = ['kitten_id', 'applicant_name', 'phone', 'email', 'message', 'social_media_url'];
-            const validation = validateRequiredFields(req.body, requiredFields);
+            return res.status(400).json({ message: 'Missing required fields', missingFields: validation.missingFields });
+        }
 
-            if (!validation.success)
-            {
-                res.status(400).json({message: validation.message, missingFields: validation.missingFields});
-                return;
-            }
+        const { kitten_id, applicant_name, phone, email, message, social_media_url } = req.body;
 
+        try 
+        {
             const availableKitty = await moduleREQUESTS.select_kitty_status(kitten_id);
-            if(!availableKitty)
+    
+            if (!availableKitty) 
             {
-                res.status(400).json('sorry, this has kitty adopted');
-                return;
+                return res.status(400).json({ message: 'Sorry, this kitten has already been adopted' });
             }
-            else
+    
+            const newRequest = await moduleREQUESTS.insert_new_one(kitten_id, applicant_name, phone, email, message, social_media_url );
+    
+            if (!newRequest) 
             {
-                const newR = await moduleREQUESTS.insert_new_one(kitten_id, applicant_name, phone, email, message, social_media_url);
-                if(!newR)
-                {
-                    res.status(400).json('invalid request answer');
-                }
-                return res.status(200).json(newR);
+                return res.status(400).json({ message: 'Invalid request. Please check provided data.' });
             }
-
-
-        }
-        catch (error)
+    
+            return res.status(201).json({ message: 'Request successfully created', request: newRequest });
+        } 
+        catch (error) 
         {
-            console.log(error);
-            res.status(500).json({ message: 'Error', error: { message: error.message } });
+            console.error('Error adding new request:', error);
+            return res.status(500).json({ message: 'An error occurred while adding the request', error: { message: error.message } });
         }
-    }
-
+    },
 
 }
 
