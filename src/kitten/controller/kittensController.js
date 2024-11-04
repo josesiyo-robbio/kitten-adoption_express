@@ -6,23 +6,30 @@ const {validateRequiredFields} = require("../middleware/validatorApi");
 
 const KittensController = 
 {
-    get_all_kittens : async(req,res) =>
+    
+    get_all_kittens: async (req, res) => 
     {
-        try
+        try 
         {
             const allKittens = await moduleKITTENS.select_all_kittens();
-
-            if(allKittens)
+    
+            if (!allKittens || allKittens.length === 0) 
             {
-                return res.status(200).json({ allKittens });
+                return res.status(404).json({ message: 'No kittens found' });
             }
-        }
+    
+            return res.status(200).json({ data: allKittens });
+        } 
         catch (error) 
         {
-            console.log(error);
-            res.status(500).json({ message: 'Error', error: { message: error.message } });
+            console.error('Error fetching kittens:', error);
+            return res.status(500).json({
+                message: 'An error occurred while fetching kittens',
+                error: { message: error.message }
+            });
         }
     },
+    
 
 
 
