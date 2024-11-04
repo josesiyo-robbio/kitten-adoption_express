@@ -1,14 +1,21 @@
-const ValidatorApi = {
-    validateRequiredFields(object, requiredFields) {
+
+
+
+const ValidatorApi = 
+{
+    validateRequiredFields(object, requiredFields) 
+    {
         const missingFields = [];
 
         requiredFields.forEach(field => {
-            if (object[field] === undefined || object[field] === null) {
+            if (object[field] === undefined || object[field] === null) 
+            {
                 missingFields.push(field);
             }
         });
 
-        if (missingFields.length > 0) {
+        if (missingFields.length > 0) 
+        {
             return {
                 success: false,
                 missingFields: missingFields,
@@ -16,7 +23,6 @@ const ValidatorApi = {
             };
         }
 
-        // Si todos los campos requeridos están presentes, devuelve true
         return { success: true };
     }
 }

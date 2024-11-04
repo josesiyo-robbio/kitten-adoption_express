@@ -13,16 +13,16 @@ const KittensQuery =
         adopted = false
     `,
 
+
     SELECT_ONE_KITTY:
     `
     SELECT 
         name, age, breed, description, photo
     FROM 
         kittens
-    where 
+    WHERE 
         id = $1
     `,
-
 
 
     INSERT_ONE_KITTY:
@@ -36,15 +36,14 @@ const KittensQuery =
     `,
 
 
-
     UPDATE_ADEOPTED :
     `UPDATE 
         kittens 
     SET 
         adopted = TRUE WHERE id = $1
-    RETURNING name;
+    RETURNING 
+        name;
     `,
-
 
 
     UPDATE_ONE_KITTY:
@@ -53,7 +52,8 @@ const KittensQuery =
         kittens 
     SET 
         name = $2, age = $3, breed = '$4', description = $5, photo = $6
-    WHERE id = $1;
+    WHERE 
+        id = $1;
     `
 }
 

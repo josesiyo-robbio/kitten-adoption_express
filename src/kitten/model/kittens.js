@@ -1,8 +1,10 @@
 
-const moduleDB                =   require('../../db/postgres');
-const moduleKITTENSQUERY = require('../query/kittensQuery');
-const moduleKITTENS = require("./kittens");
-const {validateRequiredFields} = require("../middleware/validatorApi");
+
+
+const moduleDB              =   require('../../db/postgres');
+const moduleKITTENSQUERY    =   require('../query/kittensQuery');
+
+
 
 const Kittens =
 {
@@ -12,8 +14,8 @@ const Kittens =
         {
             const result = await moduleDB.manyOrNone
             ({
-                text : moduleKITTENSQUERY.SELECT_ALL_KITTENS,
-                rowMode : 'json'
+                text    :   moduleKITTENSQUERY.SELECT_ALL_KITTENS,
+                rowMode :   'json'
             });
             console.log('Consulta SQL:', result);
             return result;
@@ -26,15 +28,16 @@ const Kittens =
     },
 
 
+
     select_one_kitty : async(idKitty)=>
     {
         try
         {
-            const result = await moduleDB.oneOrNone({
-                text:  moduleKITTENSQUERY.SELECT_ONE_KITTY,
-                values : [idKitty],
-                rowMode : 'json'
-
+            const result = await moduleDB.oneOrNone
+            ({
+                text    :   moduleKITTENSQUERY.SELECT_ONE_KITTY,
+                values  :   [idKitty],
+                rowMode :   'json'
             });
             console.log('Consulta SQL:', idKitty);
             return result;
@@ -52,10 +55,11 @@ const Kittens =
     {
         try
         {
-            const result = await moduleDB.oneOrNone({
-                text: moduleKITTENSQUERY.INSERT_ONE_KITTY,
-                values : [name, age, breed, description, photo],
-                rowMode : 'json'
+            const result = await moduleDB.oneOrNone
+            ({
+                text        :   moduleKITTENSQUERY.INSERT_ONE_KITTY,
+                values      :   [name, age, breed, description, photo],
+                rowMode     :   'json'
             });
             console.log('Consulta SQL:', result);
             return result;
@@ -73,10 +77,11 @@ const Kittens =
     {
         try
         {
-            const result = await moduleDB.oneOrNone({
-                text : moduleKITTENSQUERY.UPDATE_ADEOPTED,
-                values : [idKitty],
-                rowMode : 'json'
+            const result = await moduleDB.oneOrNone
+            ({
+                text        :   moduleKITTENSQUERY.UPDATE_ADEOPTED,
+                values      :   [idKitty],
+                rowMode     :   'json'
             });
             console.log('Consulta SQL:', result);
             return result;
@@ -87,6 +92,7 @@ const Kittens =
             throw error;
         }
     },
+
 
 
     update_kitty_info: async (id, fieldsToUpdate) =>
@@ -108,8 +114,7 @@ const Kittens =
             UPDATE kittens  
             SET ${columns.join(', ')} 
             WHERE id = $1 
-            RETURNING *;
-        `;
+            RETURNING *; `;
 
             const result = await moduleDB.oneOrNone({ text: query, values, rowMode: 'json' });
             console.log('Actualización exitosa:', result);
@@ -122,10 +127,6 @@ const Kittens =
         }
     }
 
-
 }
-
-
-
 
 module.exports = Kittens;
