@@ -29,40 +29,38 @@ const KittensController =
             });
         }
     },
-    
 
 
 
     select_one_kitty : async(req,res)=>
     {
-        let requiredFields;
+        const requiredFields = ['idKitty'];
+        const validation = validateRequiredFields(req.body, requiredFields);
+        if (!validation.success) 
+        {
+            return res.status(400).json({message: validation.message,missingFields: validation.missingFields});
+        }
+
+        const {idKitty} = req.body;
+
         try
         {
-            requiredFields = ['idKitty'];
-            const {idKitty} = req.body;
-            const validation = validateRequiredFields(req.body, requiredFields);
-
-            if (!validation.success) {
-                res.status(400).json({message: validation.message, missingFields: validation.missingFields});
-                return;
-            }
-
             const kitty = await moduleKITTENS.select_one_kitty(idKitty);
             if (!kitty)
             {
                 return res.status(404).json({ message: 'Cat not found' });
             }
-
             return res.status(200).json({ kitty });
 
 
         }
-        catch (error)
+        catch (error) 
         {
-            console.log(error);
-            res.status(500).json({message: 'Error', error: {message: error.message}});
+            console.error('Error fetching kitty:', error);
+            return res.status(500).json({ message: 'An error occurred while fetching the cat',error: { message: error.message }});
         }
     },
+
 
 
     add_kitten : async(req,res)=>
