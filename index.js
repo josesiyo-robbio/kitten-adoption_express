@@ -2,69 +2,46 @@
 
 
 require('dotenv').config();
-const moduleBODYPARSER  =   require('body-parser');
-const moduleEXPRESS     =   require('express');
-const moduleCORS        =   require('cors');
-
-
+const express = require('express');
+const cors = require('cors');
 
 //------------------ROUTES IMPORTS---------------------------------------------------|
 
-//KITTENS
-const routesKIttens            =   require('./src/kitten/routes/kittensRoutes');
-const routesRequets =   require('./src/shelter/routes/requestsRoutes');
+// KITTENS
+const routesKittens = require('./src/kitten/routes/kittensRoutes');
+const routesRequests = require('./src/shelter/routes/requestsRoutes');
 
 
 
-//------------------ROUTES IMPORTS---------------------------------------------------|
+//---------------------App Configuration---------------------------------------------|
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const corsOptions = { origin: 'http://localhost:8080' };
+app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.urlencoded({ extended: true }));
 
 
 
+//-----------APIs SECTION-----------------------------------------------------------|
 
-
-//---------------------Cors Config & Other Stuff-------------------------------------|
-
-const app   = moduleEXPRESS();
-const PORT  = process.env.PORT || 3000;
-
-const corsOptions = {origin: 'http://localhost:8080', };
-app.use(moduleEXPRESS.json());
-app.use(moduleCORS(corsOptions));
-app.use(moduleBODYPARSER.json());
-app.use(moduleBODYPARSER.urlencoded({ extended: true }));
-
-//---------------------Cors Config & Other Stuff-------------------------------------|
+app.use('/api', routesKittens);
+app.use('/api', routesRequests);
 
 
 
+//--------------------Error Handling Middleware-------------------------------------|
 
-
-//-----------APIs SECTION-------------------------------------------------------------|
-
-//KITTENS
-app.use('/api',routesKIttens);
-app.use('/api',routesRequets);
-
-
-//-----------APIs SECTION------------------------------------------------------------------|
-
-
-
-
-
-//--------------------SERVER SECTION-------------------------------|
-
-app.use((err, req, res, next) => 
-{
-    console.error(err);
+app.use((err, req, res, next) => {
+    console.error('Error:', err);
     res.status(500).json({ message: 'Internal Server Error' });
 });
 
 
-//se inicia el servidor
-app.listen(PORT, () => 
-{
+
+//--------------------Server Initialization-----------------------------------------|
+app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-//--------------------SERVER SECTION-------------------------------|
