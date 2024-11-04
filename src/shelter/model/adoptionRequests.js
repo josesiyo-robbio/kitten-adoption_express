@@ -5,78 +5,73 @@ const moduleRequests = require('../query/queryRequests');
 
 const AdoptionRequests =
 {
-    all_requests : async()=>
+    all_requests: async () => 
     {
-        try
+        try 
         {
-            const result = await moduleDB.manyOrNone
-            ({
-                text : moduleRequests.SELECT_ALL,
-                rowMode : 'json'
-            });
+            const result = await moduleDB.manyOrNone({ text: moduleRequests.SELECT_ALL, rowMode: 'json' });
             console.log('Consulta SQL:', result);
             return result;
-        }
-        catch(error)
+        } 
+        catch (error) 
         {
-            console.error('Error:', error);
+            console.error('Error fetching all requests:', error);
             throw error;
         }
     },
 
 
 
-    update_approve_or_not: async (id, status, idKitty) =>
+    update_approve_or_not: async (id, status, idKitty) => 
     {
-        if (status === 'pending' || status === 'rejected')
+        let result;
+    
+        try 
         {
-            try
+            if (status === 'pending' || status === 'rejected') 
             {
-                const result = await moduleDB.oneOrNone({
-                    text: moduleRequests.UPDATE_APPROVE_OR_NOT,
-                    values: [id, status],
-                    rowMode: 'json'
+                result = await moduleDB.oneOrNone
+                ({
+                    text    :   moduleRequests.UPDATE_APPROVE_OR_NOT,
+                    values  :   [id, status],
+                    rowMode :   'json'
                 });
-                console.log('Consulta SQL:', result);
-                return result;
-            } catch (error) {
-                console.error('Error:', error);
-                throw error;
-            }
-        }
-        else if (status === 'approved')
-        {
-            try
+                console.log('Consulta SQL (pending/rejected):', result);
+            } 
+            else if (status === 'approved') 
             {
-                const result = await moduleDB.tx(async t => {
-                    // Actualiza el estado de la solicitud
+                result = await moduleDB.tx(async t => {
+                    //Update the status of the request
                     await t.one(moduleRequests.UPDATE_APPROVE_OR_NOT, [id, status]);
-
-                    // Actualiza el estado del gatito como adoptado
+    
+                    // Update the kitten's status as adopted
                     const kittenResult = await t.one(moduleRequests.UPDATE_KITTEN, [idKitty]);
-
-                    // Devuelve ambos resultados si es necesario
+                    
+                    // Return both results if necessary
                     return { adoptionRequest: 'Updated', kitten: kittenResult };
                 });
-                return result;
+                console.log('Consulta SQL (approved):', result);
             }
-            catch (error)
-            {
-                console.error('Error:', error);
-                throw error;
-            }
+            return result;
+        } 
+        catch (error) 
+        {
+            console.error('Error in update_approve_or_not:', error);
+            throw error;
         }
     },
+
 
 
     getKittyStatus: async (idKitty) =>
     {
         try
         {
-            const result = await moduleDB.oneOrNone({
-                text: 'SELECT adopted FROM kittens WHERE id = $1',
-                values: [idKitty],
-                rowMode: 'json'
+            const result = await moduleDB.oneOrNone
+            ({
+                text    : moduleRequests.SELECT_ADOPTED,
+                values  : [idKitty],
+                rowMode : 'json'
             });
             return result || { adopted: false };
         }
@@ -88,17 +83,19 @@ const AdoptionRequests =
     },
 
 
-    rejectOtherRequests: async (idKitty, requestId) => {
-        try {
-            await moduleDB.none({
-                text: `
-                UPDATE adoption_requests 
-                SET status = 'rejected' 
-                WHERE kitten_id = $1 AND id != $2
-            `,
-                values: [idKitty, requestId]
+
+    rejectOtherRequests: async (idKitty, requestId) => 
+    {
+        try 
+        {
+            await moduleDB.none
+            ({
+                text    : UPDATE_REJECT_OTHERS,
+                values  : [idKitty, requestId]
             });
-        } catch (error) {
+        } 
+        catch (error) 
+        {
             console.error('Error rejecting other requests:', error);
             throw error;
         }
@@ -106,15 +103,15 @@ const AdoptionRequests =
 
 
 
-
     select_one : async(id) =>
     {
         try
         {
-            const result = await moduleDB.oneOrNone({
-                text: moduleRequests.SELECT_ONE,
-                values : [id],
-                rowMode : 'json'
+            const result = await moduleDB.oneOrNone
+            ({
+                text        :   moduleRequests.SELECT_ONE,
+                values      :   [id],
+                rowMode     :   'json'
             });
             console.log('Consulta SQL:', result);
             return result;
@@ -132,10 +129,11 @@ const AdoptionRequests =
     {
         try
         {
-            const result = await moduleDB.oneOrNone({
-                text : moduleRequests.INSERT_NEW_ONE,
-                values : [kitten_id, applicant_name, phone, email, message, social_media_url],
-                rowMode : 'json'
+            const result = await moduleDB.oneOrNone
+            ({
+                text        :   moduleRequests.INSERT_NEW_ONE,
+                values      :   [kitten_id, applicant_name, phone, email, message, social_media_url],
+                rowMode     :   'json'
             });
             console.log('Consulta SQL:', result);
             return result;
@@ -153,10 +151,11 @@ const AdoptionRequests =
     {
         try
         {
-            const result = await moduleDB.oneOrNone({
-                text : moduleRequests.SELECT_ONE_KITTY,
-                values : [idKitty],
-                rowMode : 'json'
+            const result = await moduleDB.oneOrNone
+            ({
+                text    :   moduleRequests.SELECT_ONE_KITTY,
+                values  :   [idKitty],
+                rowMode :   'json'
             });
             console.log('Consulta SQL:', result);
             return result;
@@ -168,8 +167,6 @@ const AdoptionRequests =
         }
     }
 
-
 }
-
 
 module.exports = AdoptionRequests;

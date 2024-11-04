@@ -1,7 +1,6 @@
 
 
 
-
 const QueryRequests =
 {
     SELECT_ALL :
@@ -13,7 +12,6 @@ const QueryRequests =
         status = 'pending'`,
 
 
-
     UPDATE_APPROVE_OR_NOT:
     `
     UPDATE 
@@ -22,7 +20,6 @@ const QueryRequests =
         status = $2 WHERE id = $1
     RETURNING status;
     `,
-
 
 
     SELECT_ONE:
@@ -43,7 +40,6 @@ const QueryRequests =
     RETURNING applicant_name`,
 
 
-
     SELECT_ONE_KITTY:
         `
     SELECT 
@@ -54,6 +50,7 @@ const QueryRequests =
         id = $1 AND adopted = false;
     `,
 
+
     UPDATE_KITTEN:
     `UPDATE
         kittens
@@ -62,7 +59,30 @@ const QueryRequests =
     WHERE  
         id = $1
     RETURNING 
-        name`
+        name`,
+
+
+    SELECT_ADOPTED:
+    `
+    SELECT 
+        adopted 
+    FROM 
+        kittens 
+    WHERE 
+        id = $1
+    `,
+    
+    UPDATE_REJECT_OTHERS:
+    `
+    UPDATE 
+        adoption_requests 
+    SET 
+        status = 'rejected' 
+    WHERE 
+        kitten_id = $1 
+    AND 
+        id != $2
+    `
 }
 
 module.exports =  QueryRequests;
