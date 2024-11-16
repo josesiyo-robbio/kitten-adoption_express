@@ -1,5 +1,4 @@
-/
-  # Kitten Adoption API
+  # Kitten Adoption 
   
   ## Overview
   A RESTful API built with Express.js to manage the process of kitten adoption. This system follows a Domain-Driven Design (DDD) approach and organizes the application into two main domains:
@@ -203,4 +202,4 @@
   3. Commit your changes
   4. Push to the branch
   5. Create a new Pull Request
- /
+ 
